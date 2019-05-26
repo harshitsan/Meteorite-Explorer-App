@@ -14,7 +14,8 @@ constructor(props) {
     maxPage:67,//tells maxPages
     filtered:[],//save filtered data on basis of search query
     query:"",//saves search query
-    currentPage:[]//data to be shown on current page
+    currentPage:[],//data to be shown on current page
+    showingEntries:10
   };
 
     this.handleQuery = this.handleQuery.bind(this);
@@ -29,29 +30,42 @@ constructor(props) {
 
 
   searchData(){//to search data from data
-    let query = this.state.query;
+    let query = this.state.query.trim();
     let filtered=[];
     if(!query)
       {
-        this.setState({filtered:[]});
+        this.setState({
+          filtered:[],
+          showingEntries:10,
+          page:1
+        });
       }
   else{
-      query = query[0].toUpperCase()+query.substring(1).toLowerCase();
-      console.log(query);
-      filtered = this.state.data.filter((e)=>e.name.includes(query));
-      this.setState({filtered});
+      query = query.toLowerCase();
+      // console.log(query);
+      filtered = this.state.data.filter((e)=>e.name.toLowerCase().includes(query));
+      this.setState({filtered,page:1});
     }
   if(filtered.length!==0)
+  {
+    let showingEntries = this.state.page*10;
+    if (showingEntries > filtered.length)
+      {
+        showingEntries  = filtered.length;
+      }
     this.setState((state, props)=>({
-      currentPage:filtered.slice(0,15),
-      maxPage:Math.ceil(filtered.length/15)
+      currentPage:filtered.slice(0,10),
+      maxPage:Math.ceil(filtered.length/10),
+      showingEntries
     }));
+  }
   else
   {
     alert("No such Value");
     this.setState((state, props)=>({
-      currentPage:state.data.slice(0,15),
-      maxPage:Math.ceil(state.data.length/15)
+      currentPage:state.data.slice(0,10),
+      maxPage:Math.ceil(state.data.length/10),
+      showingEntries:0
     }));
   }
 }
@@ -59,12 +73,28 @@ constructor(props) {
 
   changePage(changeBy){
     let next = this.state.page+changeBy;
+    let showingEntries = next*10;
+
     this.setState({page:next});
-    if(this.state.filtered.length===0)
-      this.setState((state, props)=>({currentPage:state.data.slice((next-1)*15,next*15)}));
+    let filteredLength = this.state.filtered.length;
+    if(filteredLength===0)
+      this.setState((state, props)=>(
+        {
+          currentPage:state.data.slice((next-1)*10,next*10),
+          showingEntries:state.page*10
+        }));
     else
-      this.setState((state, props)=>({currentPage:state.filtered.slice((next-1)*15,next*15)}));
+    {
+      if (showingEntries > filteredLength)
+      {
+        showingEntries  = filteredLength;
+      }
+      this.setState((state, props)=>({
+        currentPage:state.filtered.slice((next-1)*10,next*10),
+        showingEntries
+      }));
   }
+}
 
 
   componentDidMount() {
@@ -73,10 +103,10 @@ constructor(props) {
         this.setState(
           {
             data:res.data,
-            currentPage:res.data.slice(0,15),
-            maxPage:Math.ceil(res.data.length/15)
+            currentPage:res.data.slice(0,10),
+            maxPage:Math.ceil(res.data.length/10)
           });
-
+          console.log(this.state.data);
       })
   }
 
@@ -91,6 +121,8 @@ constructor(props) {
           handleQuery = {this.handleQuery}
           searchData = {this.searchData}
         />
+        {"showing " +((this.state.page-1)*10+1) +"-"+ this.state.showingEntries+ " entries of "}
+        {this.state.filtered.length ? this.state.filtered.length : this.state.data.length}
       <Table currentPage = {this.state.currentPage}/>
       <Pagination
         page={this.state.page}

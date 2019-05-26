@@ -2,7 +2,7 @@ import React from 'react';
 import TableRows from './TableRows.js';
 
 export default class Table extends React.Component{
-  
+
   render()
   {  return (
     <div className="table-responsive-xl">
