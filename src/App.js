@@ -1,7 +1,7 @@
 import React from 'react';
-// import Search from './Search.js';
-// import Table from './Table.js';
-import TableRows from './TableRows.js';
+import Search from './Search.js';
+import Table from './Table.js';
+import Pagination from './Pagination.js';
 import axios from 'axios';
 
 export default class App extends React.Component {
@@ -9,33 +9,35 @@ export default class App extends React.Component {
 constructor(props) {
     super(props);
     this.state = {
-    data: [],
-    page:1,
-    maxPage:67,
-    filtered:[],
-    query:"",
-    currentPage:[]
+    data: [],//stores whole data
+    page:1,//tells currentPage
+    maxPage:67,//tells maxPages
+    filtered:[],//save filtered data on basis of search query
+    query:"",//saves search query
+    currentPage:[]//data to be shown on current page
   };
 
     this.handleQuery = this.handleQuery.bind(this);
     this.searchData = this.searchData.bind(this);
     this.changePage = this.changePage.bind(this);
-    this.createTable = this.createTable.bind(this);
-
   }
-  handleQuery(event){//update search queary in search bar
+
+
+  handleQuery(event){//update search query in search bar
     this.setState({query:event.target.value});
   }
-  searchData(){
+
+
+  searchData(){//to search data from data
     let query = this.state.query;
     let filtered=[];
     if(!query)
       {
         this.setState({filtered:[]});
-        console.log(this.state);
       }
   else{
-      query = query[0].toUpperCase()+query.substring(1);
+      query = query[0].toUpperCase()+query.substring(1).toLowerCase();
+      console.log(query);
       filtered = this.state.data.filter((e)=>e.name.includes(query));
       this.setState({filtered});
     }
@@ -45,27 +47,26 @@ constructor(props) {
       maxPage:Math.ceil(filtered.length/15)
     }));
   else
-    this.setState((state, props)=>({currentPage:state.data.slice(0,15)}));
+  {
+    alert("No such Value");
+    this.setState((state, props)=>({
+      currentPage:state.data.slice(0,15),
+      maxPage:Math.ceil(state.data.length/15)
+    }));
   }
+}
+
+
   changePage(changeBy){
     let next = this.state.page+changeBy;
     this.setState({page:next});
     if(this.state.filtered.length===0)
       this.setState((state, props)=>({currentPage:state.data.slice((next-1)*15,next*15)}));
-
     else
       this.setState((state, props)=>({currentPage:state.filtered.slice((next-1)*15,next*15)}));
+  }
 
-    // let currentPage = this.state.data;
-    // console.log(this.state);
-  }
-  createTable(){
-    let rows=[];
-    let pageNum = this.state.page;
-    for(let i=(pageNum-1)*15 ; i<pageNum*15 ; i++)
-      rows.push(<tr>{i}</tr>);
-    return rows;
-  }
+
   componentDidMount() {
     axios.get(`https://data.nasa.gov/resource/gh4g-9sfh.json`)
       .then(res => {
@@ -76,62 +77,28 @@ constructor(props) {
             maxPage:Math.ceil(res.data.length/15)
           });
 
-        console.log("state changed",this.state);
       })
   }
+
+
     render(){
-      console.log("render");
+      // console.log("render");
       // this.createTable()
       return (
-      <div className="App">
-        <header>Meteorite Explorer</header>
-        <div>
-          <input
-            type  = "text"
-            name  = "search-bar"
-            value = {this.state.query}
-            onChange = {this.handleQuery}
-           />
-          <button onClick={this.searchData}>
-          Search</button>
-        </div>
+      <div className="App container">
+        <h1 className= "text-center">Meteorite Explorer</h1>
+        <Search
+          query={this.state.query}
+          handleQuery = {this.handleQuery}
+          searchData = {this.searchData}
+        />
+      <Table currentPage = {this.state.currentPage}/>
+      <Pagination
+        page={this.state.page}
+        maxPage={this.state.maxPage}
+        changePage={this.changePage}
+      />
 
-
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Id</th>
-              <th>nametype</th>
-              <th>recclass</th>
-              <th>mass(g)</th>
-              <th>fall</th>
-              <th>year</th>
-              <th>reclat</th>
-              <th>reclong</th>
-            </tr>
-          </thead>
-          <tbody>
-            {
-              // this.createTable()
-              // console.log(this.state.data)
-              this.state.currentPage.map((e, i)=>{
-                return <TableRows key={i}  data={e}/>
-              })
-            }
-          </tbody>
-        </table>
-        <div>
-          page number :
-          <button
-            onClick = {()=>{this.changePage(-1)}}
-            disabled = {this.state.page===1}
-            >Previous</button>
-          <button
-            onClick={()=>{this.changePage(1)}}
-            disabled = {this.state.page===this.state.maxPage}
-            >Next</button>
-        </div>
       </div>
     );
   }
