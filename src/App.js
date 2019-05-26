@@ -86,7 +86,6 @@ constructor(props) {
       // this.createTable()
       return (
       <div className="App container">
-        <h1 className= "text-center">Meteorite Explorer</h1>
         <Search
           query={this.state.query}
           handleQuery = {this.handleQuery}
