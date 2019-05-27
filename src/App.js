@@ -32,22 +32,25 @@ constructor(props) {
   searchData(){//to search data from data
     let query = this.state.query.trim();
     let filtered=[];
-    if(!query)
+    if(query==="")
       {
-        this.setState({
+        this.setState((state, props)=>({
           filtered:[],
           showingEntries:10,
-          page:1
-        });
+          page:1,
+          currentPage:state.data.slice(0,10),
+          maxPage:Math.ceil(state.data.length/10)
+        }));
+        return;
       }
   else{
       query = query.toLowerCase();
       // console.log(query);
       filtered = this.state.data.filter((e)=>e.name.toLowerCase().includes(query));
-      this.setState({filtered,page:1});
+      this.setState({query:"",filtered,page:1});
     }
-  if(filtered.length!==0)
-  {
+  // if(filtered.length!==0)
+  // {
     let showingEntries = this.state.page*10;
     if (showingEntries > filtered.length)
       {
@@ -58,16 +61,16 @@ constructor(props) {
       maxPage:Math.ceil(filtered.length/10),
       showingEntries
     }));
-  }
-  else
-  {
-    alert("No such Value");
-    this.setState((state, props)=>({
-      currentPage:state.data.slice(0,10),
-      maxPage:Math.ceil(state.data.length/10),
-      showingEntries:0
-    }));
-  }
+  // }
+  // else
+  // {
+  //   // alert("No such Value");
+  //   this.setState((state, props)=>({
+  //     currentPage:state.data.slice(0,10),
+  //     maxPage:Math.ceil(state.data.length/10),
+  //     showingEntries:0
+  //   }));
+  //}
 }
 
 
@@ -106,7 +109,7 @@ constructor(props) {
             currentPage:res.data.slice(0,10),
             maxPage:Math.ceil(res.data.length/10)
           });
-          console.log(this.state.data);
+          // console.log(this.state.data);
       })
   }
 
@@ -121,8 +124,9 @@ constructor(props) {
           handleQuery = {this.handleQuery}
           searchData = {this.searchData}
         />
-        {"showing " +((this.state.page-1)*10+1) +"-"+ this.state.showingEntries+ " entries of "}
+        {"showing " +((this.state.page-1)*10+1) +"-"+ this.state.showingEntries+ " of "}
         {this.state.filtered.length ? this.state.filtered.length : this.state.data.length}
+        {" entries."}
       <Table currentPage = {this.state.currentPage}/>
       <Pagination
         page={this.state.page}
